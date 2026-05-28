@@ -25,9 +25,9 @@ st.title("Predictive Maintenance System")
 FIG_SIZE = (3.2, 2)
 type_map = {"L": 0, "M": 1, "H": 2}
 
-# ======================
-# NAVIGATION (FINAL ORDER)
-# ======================
+# ==========
+# NAVIGATION
+# ==========
 page = st.sidebar.radio(
     "Navigation",
     [
@@ -89,6 +89,10 @@ if page == "Exploratory Data Analysis":
 
         fig, ax = plt.subplots(figsize=(5,3))
         ax.barh(fi_df["Feature"], fi_df["Importance"], color="green")
+        
+        ax.set_title("Feature Importance (XGBoost Model)")
+        ax.set_xlabel("Importance Score")
+        ax.set_ylabel("Features")
 
         st.pyplot(fig)
 
@@ -141,7 +145,7 @@ elif page == "Model Performance":
     st.title("Model Performance (Test Set Evaluation)")
 
     # ======================
-    # IMPORT METRICS (safety inside page)
+    # IMPORT METRICS
     # ======================
     from sklearn.metrics import (
         accuracy_score,
@@ -242,7 +246,7 @@ elif page == "Model Performance":
 
 
 # =========================================================
-# 3. PREDICTION PAGE (WITH HISTOGRAMS)
+# 3. PREDICTION PAGE
 # =========================================================
 elif page == "Prediction":
 
@@ -328,7 +332,7 @@ elif page == "Prediction":
         st.metric("Confidence", f"{confidence:.2f}")
 
 # =========================================================
-# 4. MAINTENANCE DASHBOARD (FULL RESTORED)
+# 4. MAINTENANCE DASHBOARD
 # =========================================================
 elif page == "Dashboard":
 
@@ -386,7 +390,7 @@ elif page == "Dashboard":
     st.markdown("---")
 
     # ======================
-    # FAILURE ANALYSIS (RESTORED)
+    # FAILURE ANALYSIS
     # ======================
     st.subheader("Failure Analysis")
 
@@ -465,16 +469,36 @@ elif page == "Dashboard":
     # ======================
     st.subheader("Failure Trend Over Time")
 
+    # ----------------------
+    # Failure Type Selector
+    # ----------------------
+    failure_option = st.selectbox(
+        "Select Failure Type",
+        ["Machine_failure", "TWF", "HDF", "PWF", "OSF", "RNF"]
+    )
+
+    # ----------------------
+    # Aggregate Trend
+    # ----------------------
     failure_trend = df_filtered.groupby(
         ["Date_Time", "Machine_ID"]
-    )["Machine_failure"].sum().reset_index()
+    )[failure_option].sum().reset_index()
 
+    # ----------------------
+    # Dynamic Title
+    # ----------------------
     fig2 = px.line(
         failure_trend,
         x="Date_Time",
-        y="Machine_failure",
+        y=failure_option,
         color="Machine_ID",
-        markers=True
+        markers=True,
+        title=f"{failure_option} Trend Over Time"
+    )
+
+    fig2.update_layout(
+        yaxis_title="Failure Count",
+        xaxis_title="Date Time"
     )
 
     st.plotly_chart(fig2, use_container_width=True)
